@@ -4,8 +4,8 @@ DevStore is a local search experiment with no authentication or production deplo
 
 ## Credentials
 
-- Laravel's `TYPESENSE_API_KEY` authorizes server-side access to Typesense. It is not the Gemini key.
-- The Gemini key belongs in the Typesense NL model configuration. `php artisan devstore:configure-nl` prompts for it without echoing it, sends it to the configured Typesense server, and does not save it in this checkout.
+- Laravel's `TYPESENSE_API_KEY` authorizes server-side access to Typesense. It is separate from any AI provider credentials.
+- AI provider credentials belong in the Typesense NL model configuration. Gemini is optional; `php artisan devstore:configure-nl` is a Gemini-specific helper that prompts for its key without echoing it, sends it to the configured Typesense server, and does not save it in this checkout. Configure other supported providers directly in Typesense.
 - `.env`, private setup files, SQLite databases, server data and logs are ignored by Git. Do not force-add them. Use a new Typesense key for your own installation, and rotate any credential you accidentally disclose.
 - Keep `APP_DEBUG=false` and `DEVSTORE_SEARCH_DEBUG=false` outside a private local environment. Laravel's debug exception pages can reveal configuration. Typesense model-management responses can include provider configuration; do not paste them into issues.
 

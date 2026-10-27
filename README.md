@@ -11,7 +11,7 @@ This is an experiment. Product configurations, accessory kits, INR prices, ratin
 - **PHP 8.4+**, Composer 2, and the usual Laravel extensions, including PDO SQLite, SQLite3, mbstring, curl, openssl, fileinfo, XML and DOM. PHP 8.4 is the baseline for this project's locked dependencies and Pest 4.
 - **Node.js 22.12+** and npm for the Tailwind/Vite build.
 - **Typesense 30.2**, the server version used for this experiment. Use Docker Compose below or an existing server. Docker is needed only for that optional server setup, not for Laravel itself.
-- **Optional for NL Search:** a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey), with access to your chosen model. Traditional Search works without an AI key.
+- **For NL Search:** a model registered in Typesense using one of its [supported providers or self-hosted backends](https://typesense.org/docs/30.2/api/natural-language-search.html#supported-model-types). Gemini is the example used below, not a requirement. Traditional Search works without an AI key.
 
 The application runs on Windows, macOS and Linux. The commands below are run from the repository root after cloning or downloading it.
 
@@ -59,9 +59,9 @@ There are **two separate API keys**:
 | Key | Used by | Where it belongs |
 | --- | --- | --- |
 | Typesense API key | Laravel / Scout, to access your search server | `TYPESENSE_API_KEY` in Laravel's ignored `.env` |
-| Gemini API key | Typesense, to interpret natural-language queries | The NL model registered inside Typesense; enter it using the hidden setup prompt in step 4 |
+| AI provider credentials, when required | Typesense, to interpret natural-language queries | The NL model registered inside Typesense; step 4 shows Gemini and other provider options |
 
-Laravel does not call Gemini and does not need a `GEMINI_API_KEY` variable.
+Laravel sends searches to Typesense. AI provider credentials belong in Typesense's model configuration, not Laravel's `.env`.
 
 ### Local server with Docker Compose
 
@@ -131,7 +131,13 @@ Importing does not migrate an existing collection schema. If you change it, rebu
 
 **Traditional Search is ready at this point.** Continue to step 4 only if you want Natural Language Search.
 
-## 4. Configure Gemini inside Typesense
+## 4. Configure a Natural Language Search model in Typesense
+
+**Gemini is optional.** I used Gemini for this experiment because it offered a free tier. You can use another provider or self-hosted model supported by your Typesense version. See [Typesense's supported model types and registration examples](https://typesense.org/docs/30.2/api/natural-language-search.html#supported-model-types).
+
+Google's free tier applies to eligible models and has limits; it is not a promise that every Gemini model or all usage is free. Check the current [Gemini API pricing and free-tier details](https://ai.google.dev/gemini-api/docs/pricing) for your account and selected model.
+
+### Option A: Gemini, as used in this demo
 
 Obtain a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey). Confirm the account can access the selected model; provider quotas, rate limits and usage charges apply. NL queries and catalog schema information are processed by that provider through Typesense.
 
@@ -151,7 +157,18 @@ php artisan devstore:configure-nl --model=google/your-supported-gemini-model
 
 Model names and availability can change; check [Google's model documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite) and the [Typesense NL API](https://typesense.org/docs/30.2/api/natural-language-search.html). The prefix `google/` is Typesense's provider identifier. No Google SDK is installed in Laravel.
 
-For an already configured NL model, simply put its ID in `TYPESENSE_NL_MODEL_ID` and skip the registration command. Other providers can be registered directly through Typesense's documented API; the interactive helper is specifically for Gemini. Manage credential changes inside Typesense, rather than committing provider configuration here.
+### Option B: Another Typesense-supported provider
+
+1. Register the provider/model and its required credentials or endpoint **inside Typesense**, following the [NL model registration documentation](https://typesense.org/docs/30.2/api/natural-language-search.html#create-a-natural-language-search-model).
+2. Set the registered model's ID in Laravel's `.env`:
+
+   ```dotenv
+   TYPESENSE_NL_MODEL_ID=your-nl-model-id
+   ```
+
+3. Run `php artisan config:clear`, select Natural Language Search, and submit a query.
+
+The search code passes this ID to Typesense, so switching providers requires no Laravel search-code changes or additional provider SDK. `gemini-model` is just the example ID used for this experiment. The `devstore:configure-nl` helper is specifically for Gemini; skip it for other providers or an already configured model. Manage credential changes inside Typesense rather than committing provider configuration here.
 
 ## 5. Run the app
 
@@ -198,7 +215,7 @@ Set `DEVSTORE_SEARCH_DEBUG=true` with `APP_ENV=local` to show the collapsed **Se
 | Symptom | Check |
 | --- | --- |
 | Search unavailable | Typesense health, host/port/protocol, API key and import command; clear Laravel's config cache after environment changes. |
-| NL Search unavailable | Register the configured model ID, verify provider model access/quota, and inspect private Typesense logs. Traditional Search needs no Gemini key. |
+| NL Search unavailable | Register the configured model ID, verify provider model access/quota, and inspect private Typesense logs. Traditional Search needs no AI provider key. |
 | Empty interpretation or HTTP 408 | Model/provider failure or timeout; the app rejects empty metadata. The NL server timeout is 60000 ms. |
 | Valid search has no hits | Reset explicit filters, distinguish keywords from a sentence, and inspect the generated/executed parameters locally. Do not assume the model interpreted intent correctly. |
 | SQLite file missing | Create `database/database.sqlite` and run `php artisan migrate --seed`. A custom `DB_DATABASE` must point to an existing absolute file path. |
