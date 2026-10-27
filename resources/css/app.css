@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+
+@layer base {
+    button, select, summary { cursor: pointer; }
+    input:focus-visible, select:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--color-teal-600); outline-offset: 3px; }
+}
+@layer components {
+    .filter-label { @apply block text-xs font-semibold text-slate-600; }
+    .filter-label select, .filter-input { @apply mt-1.5 w-full rounded-lg border border-stone-300 bg-white px-2.5 py-2.5 text-sm font-normal text-slate-800; }
+    .spec { @apply rounded-md border border-stone-200 px-2 py-1; }
+}
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}

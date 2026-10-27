@@ -1,0 +1,13 @@
+services:
+  typesense:
+    image: typesense/typesense:30.2
+    ports:
+      - "127.0.0.1:8108:8108"
+    environment:
+      TYPESENSE_API_KEY: "${TYPESENSE_API_KEY:?Set TYPESENSE_API_KEY in .env before starting Typesense}"
+    command: ["--data-dir=/data"]
+    volumes:
+      - typesense-data:/data
+
+volumes:
+  typesense-data:
